@@ -1,0 +1,38 @@
+#require "logger"
+
+require "sinatra"
+require 'sinatra_warden'
+require "active_record"
+
+ActiveRecord::Base.establish_connection(
+  :adapter => "mysql2",
+  :database => "lesson_breakdown",
+  :username => "root",
+  :password => "root"
+)
+
+ActiveRecord::Base.logger = Logger.new(STDOUT)
+
+require "action_mailer"
+
+ActionMailer::Base.view_paths = File.join(File.dirname(__FILE__),"views")
+
+autoload :Lesson,File.join(File.dirname(__FILE__),"models","lesson")
+
+get "/" do
+ erb :"lessons/new.html"
+end
+
+class Application < Sinatra::Base
+  register Sinatra::Warden
+
+  get '/admin' do
+    authorize!('/login') # require session, redirect to '/login' instead of work
+    haml :admin
+  end
+
+  get '/dashboard' do
+    authorize! # require a session for this action
+    haml :dashboard
+  end
+end
